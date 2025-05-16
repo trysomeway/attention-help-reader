@@ -31,7 +31,7 @@
     });
 
     const style = document.createElement('style');
-style.textContent = `
+    style.textContent = `
     .focused-sentence {
         background-color: #ffff99;
         border-radius: 4px;
@@ -53,7 +53,7 @@ style.textContent = `
         z-index: 9999;
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
 
 
     function autoUpdateSentences() {
@@ -236,12 +236,54 @@ document.head.appendChild(style);
         } else if (e.key === 'd') {
             const span = sentenceSpans[currentIndex];
             if (span) {
-                span.scrollIntoView({ behavior: 'instant', block: 'center' });
+                // Remove scrollIntoView — we don't want any scrolling
                 setTimeout(() => {
-                    simulateFakeCursorHover(span);
-                }, 50);
+                    const range = document.createRange();
+                    range.selectNodeContents(span);
+                    const rects = range.getClientRects();
+
+                    if (rects.length > 0) {
+                        const rect = rects[0];
+                        const x = rect.left + 10;
+                        const y = rect.top + 5;
+
+                        // Hide real cursor
+                        document.body.classList.add('hide-cursor');
+
+                        // Create or reuse fake cursor
+                        let fakeCursor = document.getElementById('fake-cursor');
+                        if (!fakeCursor) {
+                            fakeCursor = document.createElement('div');
+                            fakeCursor.id = 'fake-cursor';
+                            fakeCursor.style.position = 'fixed';
+                            fakeCursor.style.width = '8px';
+                            fakeCursor.style.height = '8px';
+                            fakeCursor.style.borderRadius = '50%';
+                            fakeCursor.style.background = 'transparent';
+                            fakeCursor.style.pointerEvents = 'none';
+                            fakeCursor.style.zIndex = '9999';
+                            document.body.appendChild(fakeCursor);
+                        }
+
+                        fakeCursor.style.left = `${x}px`;
+                        fakeCursor.style.top = `${y}px`;
+
+                        const el = document.elementFromPoint(x, y);
+                        if (el) {
+                            el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: y }));
+                            el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+                            el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, clientX: x, clientY: y }));
+                        }
+
+                        setTimeout(() => {
+                            if (fakeCursor) fakeCursor.remove();
+                            document.body.classList.remove('hide-cursor');
+                        }, 2000);
+                    }
+                }, 100);
             }
             e.preventDefault();
         }
+
     });
 })();
