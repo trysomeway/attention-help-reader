@@ -235,60 +235,65 @@
             e.preventDefault();
         } else if (e.key === 'd') {
             const span = sentenceSpans[currentIndex];
-            if (span) {
-                // Get span's first bounding rect
-                const range = document.createRange();
-                range.selectNodeContents(span);
-                const rects = range.getClientRects();
-                if (rects.length === 0) return;
+            if (!span) return;
 
-                const rect = rects[0];
-                const x = rect.left + 10;
-                const y = rect.top + 5;
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            const rects = range.getClientRects();
+            if (rects.length === 0) return;
 
-                // Show fake cursor first
-                let fakeCursor = document.getElementById('fake-cursor');
-                if (!fakeCursor) {
-                    fakeCursor = document.createElement('div');
-                    fakeCursor.id = 'fake-cursor';
-                    fakeCursor.style.position = 'fixed';
-                    fakeCursor.style.width = '6px';
-                    fakeCursor.style.height = '6px';
-                    fakeCursor.style.borderRadius = '50%';
-                    fakeCursor.style.background = 'red';
-                    fakeCursor.style.zIndex = '9999';
-                    fakeCursor.style.pointerEvents = 'none';
-                    document.body.appendChild(fakeCursor);
-                }
+            const rect = rects[0];
+            const x = rect.left + 10;
+            const y = rect.top + 5;
 
-                fakeCursor.style.left = `${x}px`;
-                fakeCursor.style.top = `${y}px`;
+            // Create or reuse fake cursor
+            let fakeCursor = document.getElementById('fake-cursor');
+            if (!fakeCursor) {
+                fakeCursor = document.createElement('div');
+                fakeCursor.id = 'fake-cursor';
+                fakeCursor.style.position = 'fixed';
+                fakeCursor.style.width = '6px';
+                fakeCursor.style.height = '6px';
+                fakeCursor.style.borderRadius = '50%';
+                fakeCursor.style.background = 'red'; // make visible to debug
+                fakeCursor.style.zIndex = '9999';
+                fakeCursor.style.pointerEvents = 'none';
+                document.body.appendChild(fakeCursor);
+            }
 
-                // Dispatch the correct events
-                const target = document.elementFromPoint(x, y);
-                if (target) {
-                    // Don't hide cursor yet
-                    target.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: y }));
-                    target.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+            fakeCursor.style.left = `${x}px`;
+            fakeCursor.style.top = `${y}px`;
 
-                    // Click only if needed
+            // Optional: slight scroll nudge to center sentence
+            span.scrollIntoView({ block: 'center', behavior: 'instant' });
+
+            const target = document.elementFromPoint(x, y);
+            if (target) {
+                // Hover events first
+                target.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: y }));
+                target.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+
+                // Give hover a little time before click
+                setTimeout(() => {
+                    // Then click
                     target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: x, clientY: y }));
                     target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: x, clientY: y }));
                     target.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y }));
-                }
 
-                // Optionally hide the real cursor after all this
-                document.body.classList.add('hide-cursor');
+                    // Now hide real cursor
+                    document.body.classList.add('hide-cursor');
 
-                // Remove fake cursor after a delay
-                setTimeout(() => {
-                    if (fakeCursor) fakeCursor.remove();
-                    document.body.classList.remove('hide-cursor');
-                }, 2000);
+                    // Remove fake cursor and restore real cursor
+                    setTimeout(() => {
+                        if (fakeCursor) fakeCursor.remove();
+                        document.body.classList.remove('hide-cursor');
+                    }, 1500); // keep it invisible briefly to stabilize tooltip
+                }, 150); // short delay to allow hover before click
             }
 
             e.preventDefault();
         }
+
 
     });
 })();
