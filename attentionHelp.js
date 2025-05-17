@@ -171,22 +171,17 @@
     }
 
     function hideTooltip() {
-    // Simulate moving mouse away from text (offscreen)
-    const offX = window.innerWidth - 10;
-    const offY = window.innerHeight - 10;
-    const el = document.elementFromPoint(offX, offY);
+        // Simulate moving mouse away from text (offscreen)
+        const offX = window.innerWidth - 10;
+        const offY = window.innerHeight - 10;
+        const el = document.elementFromPoint(offX, offY);
 
-    if (el) {
-        el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: offX, clientY: offY }));
-        el.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, clientX: offX, clientY: offY }));
-        el.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true, clientX: offX, clientY: offY }));
+        if (el) {
+            el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: offX, clientY: offY }));
+            el.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, clientX: offX, clientY: offY }));
+            el.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true, clientX: offX, clientY: offY }));
+        }
     }
-
-    // Optional: simulate click far away
-    el?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: offX, clientY: offY }));
-    el?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: offX, clientY: offY }));
-    el?.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: offX, clientY: offY }));
-}
 
     function simulateHover(x, y) {
         const el = document.elementFromPoint(x, y);
@@ -285,7 +280,7 @@
             fakeCursor.style.top = `${y}px`;
 
             // Optional: slight scroll nudge to center sentence
-            span.scrollIntoView({ block: 'center', behavior: 'instant' });
+            // span.scrollIntoView({ block: 'center', behavior: 'instant' });
 
             const target = document.elementFromPoint(x, y);
             if (target) {
