@@ -236,52 +236,57 @@
         } else if (e.key === 'd') {
             const span = sentenceSpans[currentIndex];
             if (span) {
-                // Remove scrollIntoView — we don't want any scrolling
+                // Get span's first bounding rect
+                const range = document.createRange();
+                range.selectNodeContents(span);
+                const rects = range.getClientRects();
+                if (rects.length === 0) return;
+
+                const rect = rects[0];
+                const x = rect.left + 10;
+                const y = rect.top + 5;
+
+                // Show fake cursor first
+                let fakeCursor = document.getElementById('fake-cursor');
+                if (!fakeCursor) {
+                    fakeCursor = document.createElement('div');
+                    fakeCursor.id = 'fake-cursor';
+                    fakeCursor.style.position = 'fixed';
+                    fakeCursor.style.width = '6px';
+                    fakeCursor.style.height = '6px';
+                    fakeCursor.style.borderRadius = '50%';
+                    fakeCursor.style.background = 'red';
+                    fakeCursor.style.zIndex = '9999';
+                    fakeCursor.style.pointerEvents = 'none';
+                    document.body.appendChild(fakeCursor);
+                }
+
+                fakeCursor.style.left = `${x}px`;
+                fakeCursor.style.top = `${y}px`;
+
+                // Dispatch the correct events
+                const target = document.elementFromPoint(x, y);
+                if (target) {
+                    // Don't hide cursor yet
+                    target.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: y }));
+                    target.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+
+                    // Click only if needed
+                    target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: x, clientY: y }));
+                    target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: x, clientY: y }));
+                    target.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y }));
+                }
+
+                // Optionally hide the real cursor after all this
+                document.body.classList.add('hide-cursor');
+
+                // Remove fake cursor after a delay
                 setTimeout(() => {
-                    const range = document.createRange();
-                    range.selectNodeContents(span);
-                    const rects = range.getClientRects();
-
-                    if (rects.length > 0) {
-                        const rect = rects[0];
-                        const x = rect.left + 10;
-                        const y = rect.top + 5;
-
-                        // Hide real cursor
-                        document.body.classList.add('hide-cursor');
-
-                        // Create or reuse fake cursor
-                        let fakeCursor = document.getElementById('fake-cursor');
-                        if (!fakeCursor) {
-                            fakeCursor = document.createElement('div');
-                            fakeCursor.id = 'fake-cursor';
-                            fakeCursor.style.position = 'fixed';
-                            fakeCursor.style.width = '8px';
-                            fakeCursor.style.height = '8px';
-                            fakeCursor.style.borderRadius = '50%';
-                            fakeCursor.style.background = 'transparent';
-                            fakeCursor.style.pointerEvents = 'none';
-                            fakeCursor.style.zIndex = '9999';
-                            document.body.appendChild(fakeCursor);
-                        }
-
-                        fakeCursor.style.left = `${x}px`;
-                        fakeCursor.style.top = `${y}px`;
-
-                        const el = document.elementFromPoint(x, y);
-                        if (el) {
-                            el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: y }));
-                            el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
-                            el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, clientX: x, clientY: y }));
-                        }
-
-                        setTimeout(() => {
-                            if (fakeCursor) fakeCursor.remove();
-                            document.body.classList.remove('hide-cursor');
-                        }, 2000);
-                    }
-                }, 100);
+                    if (fakeCursor) fakeCursor.remove();
+                    document.body.classList.remove('hide-cursor');
+                }, 2000);
             }
+
             e.preventDefault();
         }
 
