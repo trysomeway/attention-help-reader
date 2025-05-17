@@ -170,6 +170,24 @@
         }
     }
 
+    function hideTooltip() {
+    // Simulate moving mouse away from text (offscreen)
+    const offX = window.innerWidth - 10;
+    const offY = window.innerHeight - 10;
+    const el = document.elementFromPoint(offX, offY);
+
+    if (el) {
+        el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: offX, clientY: offY }));
+        el.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, clientX: offX, clientY: offY }));
+        el.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true, clientX: offX, clientY: offY }));
+    }
+
+    // Optional: simulate click far away
+    el?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: offX, clientY: offY }));
+    el?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: offX, clientY: offY }));
+    el?.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: offX, clientY: offY }));
+}
+
     function simulateHover(x, y) {
         const el = document.elementFromPoint(x, y);
         if (el) {
@@ -223,12 +241,14 @@
 
         if (e.key === 's') {
             if (currentIndex < sentenceSpans.length - 1) {
+                hideTooltip();
                 currentIndex++;
                 highlightSentence(currentIndex);
             }
             e.preventDefault();
         } else if (e.key === 'w') {
             if (currentIndex > 0) {
+                hideTooltip();
                 currentIndex--;
                 highlightSentence(currentIndex);
             }
